@@ -13,13 +13,50 @@
             margin: 0;
             padding: 0;
         }
-        .container {
-            max-width: 420px;
-            margin: 40px auto;
+        .main-flex {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 90vh;
+            gap: 32px;
+        }
+        .timer-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1 1 0;
+            min-width: 320px;
+            min-height: 100vh;
+        }
+        .timer {
+            text-align: center;
+            font-size: 12vw;
+            max-font-size: 14em;
+            min-font-size: 6em;
+            font-family: 'Roboto Mono', monospace;
+            margin-bottom: 24px;
+            color: #c06cb6;
+            letter-spacing: 2px;
+            font-weight: 900;
+            line-height: 1.1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .side-panel {
             background: #fff;
             border-radius: 18px;
             box-shadow: 0 4px 24px rgba(180, 120, 200, 0.13);
-            padding: 32px 28px 24px 28px;
+            padding: 32px 24px 24px 24px;
+            min-width: 320px;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            min-height: 100vh;
+            height: 100vh;
+            box-sizing: border-box;
         }
         h1 {
             text-align: center;
@@ -34,17 +71,11 @@
             margin-bottom: 18px;
             font-style: italic;
         }
-        .timer {
-            text-align: center;
-            font-size: 3em;
-            font-family: 'Roboto Mono', monospace;
-            margin-bottom: 10px;
-        }
         .controls {
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 18px;
+            margin-bottom: 10px;
         }
         .controls button {
             background: #c06cb6;
@@ -62,7 +93,7 @@
         }
         .duration {
             text-align: center;
-            margin-bottom: 18px;
+            margin-bottom: 10px;
         }
         .duration input {
             width: 50px;
@@ -73,7 +104,7 @@
             text-align: center;
         }
         .calendar {
-            margin: 18px 0 10px 0;
+            margin: 10px 0 10px 0;
         }
         .calendar-table {
             width: 100%;
@@ -95,7 +126,7 @@
             border: 2px solid #c06cb6;
         }
         .history {
-            margin-top: 18px;
+            margin-top: 10px;
             background: #f8e1f4;
             border-radius: 10px;
             padding: 10px;
@@ -109,32 +140,54 @@
             color: #7a4e8a;
             font-weight: 700;
         }
+        @media (max-width: 900px) {
+            .main-flex {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+            }
+            .side-panel {
+                margin: 0 auto;
+                min-width: unset;
+                max-width: 98vw;
+                min-height: unset;
+                height: auto;
+            }
+            .timer-panel {
+                min-width: unset;
+                min-height: unset;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Pomodoro Power</h1>
-        <div class="motivational">¡Eres una ingeniera brillante! Cada pomodoro te acerca más a tus sueños. 💜</div>
-        <div class="timer" id="timer">25:00</div>
-        <div class="controls">
-            <button onclick="startTimer()">Iniciar</button>
-            <button onclick="pauseTimer()">Pausar</button>
-            <button onclick="resetTimer()">Reiniciar</button>
+    <div class="main-flex">
+        <div class="timer-panel">
+            <h1>Pomodoro Power</h1>
+            <div class="motivational">¡Eres una ingeniera brillante! Cada pomodoro te acerca más a tus sueños. 💜</div>
+            <div class="timer" id="timer">25:00</div>
         </div>
-        <div class="duration">
-            Duración: <input type="number" id="duration" min="1" max="120" value="25"> min
-            <button onclick="setDuration()">Establecer</button>
-        </div>
-        <div class="pomodoros-today">
-            Pomodoros hoy: <span id="pomodoros-today">0</span>
-        </div>
-        <div class="calendar">
-            <strong>Calendario de estudio</strong>
-            <div id="calendar"></div>
-        </div>
-        <div class="history">
-            <strong>Historial reciente:</strong>
-            <ul id="history-list" style="padding-left: 18px; margin: 0;"></ul>
+        <div class="side-panel">
+            <div class="controls">
+                <button onclick="startTimer()">Iniciar</button>
+                <button onclick="pauseTimer()">Pausar</button>
+                <button onclick="resetTimer()">Reiniciar</button>
+            </div>
+            <div class="duration">
+                Duración: <input type="number" id="duration" min="1" max="120" value="25"> min
+                <button onclick="setDuration()">Establecer</button>
+            </div>
+            <div class="pomodoros-today">
+                Pomodoros hoy: <span id="pomodoros-today">0</span>
+            </div>
+            <div class="calendar">
+                <strong>Calendario de estudio</strong>
+                <div id="calendar"></div>
+            </div>
+            <div class="history">
+                <strong>Historial reciente:</strong>
+                <ul id="history-list" style="padding-left: 18px; margin: 0;"></ul>
+            </div>
         </div>
     </div>
     <script>
