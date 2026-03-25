@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Femenino</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #f8e1f4 0%, #e1f0fa 100%);
+            font-family: 'Montserrat', sans-serif;
+            color: #4a3b57;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 420px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(180, 120, 200, 0.13);
+            padding: 32px 28px 24px 28px;
+        }
+        h1 {
+            text-align: center;
+            color: #c06cb6;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .motivational {
+            text-align: center;
+            font-size: 1.1em;
+            color: #7a4e8a;
+            margin-bottom: 18px;
+            font-style: italic;
+        }
+        .timer {
+            text-align: center;
+            font-size: 3em;
+            font-family: 'Roboto Mono', monospace;
+            margin-bottom: 10px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .controls button {
+            background: #c06cb6;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .controls button:hover {
+            background: #a04e8a;
+        }
+        .duration {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        .duration input {
+            width: 50px;
+            border-radius: 6px;
+            border: 1px solid #c06cb6;
+            padding: 4px 8px;
+            font-size: 1em;
+            text-align: center;
+        }
+        .calendar {
+            margin: 18px 0 10px 0;
+        }
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+        .calendar-table th, .calendar-table td {
+            width: 14.2%;
+            text-align: center;
+            padding: 4px 0;
+            border-radius: 6px;
+        }
+        .calendar-table td.marked {
+            background: #f8e1f4;
+            color: #c06cb6;
+            font-weight: bold;
+        }
+        .calendar-table td.today {
+            border: 2px solid #c06cb6;
+        }
+        .history {
+            margin-top: 18px;
+            background: #f8e1f4;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 0.98em;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .pomodoros-today {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #7a4e8a;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pomodoro Power</h1>
+        <div class="motivational">¡Eres una ingeniera brillante! Cada pomodoro te acerca más a tus sueños. 💜</div>
+        <div class="timer" id="timer">25:00</div>
+        <div class="controls">
+            <button onclick="startTimer()">Iniciar</button>
+            <button onclick="pauseTimer()">Pausar</button>
+            <button onclick="resetTimer()">Reiniciar</button>
+        </div>
+        <div class="duration">
+            Duración: <input type="number" id="duration" min="1" max="120" value="25"> min
+            <button onclick="setDuration()">Establecer</button>
+        </div>
+        <div class="pomodoros-today">
+            Pomodoros hoy: <span id="pomodoros-today">0</span>
+        </div>
+        <div class="calendar">
+            <strong>Calendario de estudio</strong>
+            <div id="calendar"></div>
+        </div>
+        <div class="history">
+            <strong>Historial reciente:</strong>
+            <ul id="history-list" style="padding-left: 18px; margin: 0;"></ul>
+        </div>
+    </div>
+    <script>
+        let timer;
+        let timeLeft = 25 * 60;
+        let running = false;
+        let duration = 25;
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const secs = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${mins}:${secs}`;
+        }
+
+        function startTimer() {
+            if (!running) {
+                running = true;
+                timer = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timer);
+                        running = false;
+                        fetch('/add_pomodoro', {method: 'POST'})
+                            .then(() => {
+                                showMotivation();
+                                fetchData();
+                            });
+                        alert('¡Pomodoro terminado! ¡Sigue así, ingeniera!');
+                        resetTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            running = false;
+            clearInterval(timer);
+        }
+
+        function resetTimer() {
+            running = false;
+            clearInterval(timer);
+            timeLeft = duration * 60;
+            updateTimerDisplay();
+        }
+
+        function setDuration() {
+            const val = parseInt(document.getElementById('duration').value);
+            if (val > 0 && val <= 120) {
+                duration = val;
+                resetTimer();
+            }
+        }
+
+        function showMotivation() {
+            const messages = [
+                '¡Sigue brillando, ingeniera!',
+                '¡Cada paso cuenta, no te detengas!',
+                '¡Eres capaz de lograrlo todo!',
+                '¡La constancia es tu superpoder!',
+                '¡Hoy es un gran día para aprender!',
+                '¡Tu esfuerzo te hace única!'
+            ];
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+            document.querySelector('.motivational').textContent = msg;
+        }
+
+        function fetchData() {
+            fetch('/get_data')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('pomodoros-today').textContent = data.pomodoros_today;
+                    renderCalendar(data.calendar);
+                    renderHistory(data.history);
+                });
+        }
+
+        function renderCalendar(calendar) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const today = now.getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let html = '<table class="calendar-table"><tr>';
+            const weekDays = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+            for (let d of weekDays) html += `<th>${d}</th>`;
+            html += '</tr><tr>';
+            for (let i = 0; i < firstDay; i++) html += '<td></td>';
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${(month+1).toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+                let classes = '';
+                if (calendar[dateStr]) classes += 'marked ';
+                if (day === today) classes += 'today ';
+                html += `<td class="${classes.trim()}">${day}</td>`;
+                if ((firstDay + day) % 7 === 0) html += '</tr><tr>';
+            }
+            html += '</tr></table>';
+            document.getElementById('calendar').innerHTML = html;
+        }
+
+        function renderHistory(history) {
+            const ul = document.getElementById('history-list');
+            ul.innerHTML = '';
+            for (let entry of history.slice(-10).reverse()) {
+                const [date, time] = entry.split(' ');
+                ul.innerHTML += `<li>${date} <span style="color:#c06cb6;">${time}</span></li>`;
+            }
+        }
+
+        // Inicialización
+        updateTimerDisplay();
+        fetchData();
+    </script>
+</body>
+</html>
