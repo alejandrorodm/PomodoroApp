@@ -177,6 +177,12 @@
                 Duración: <input type="number" id="duration" min="1" max="120" value="25"> min
                 <button onclick="setDuration()">Establecer</button>
             </div>
+            <div class="tags-panel">
+                <b>Etiqueta:</b>
+                <div id="tag-buttons" style="margin: 8px 0 6px 0; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                <input type="text" id="new-tag" placeholder="Nueva etiqueta" style="margin-top:6px; width:70%">
+                <button onclick="addTag()" style="margin-top:6px;">Añadir</button>
+            </div>
             <div class="pomodoros-today">
                 Pomodoros hoy: <span id="pomodoros-today">0</span>
             </div>
@@ -202,6 +208,7 @@
             document.getElementById('timer').textContent = `${mins}:${secs}`;
         }
 
+        let selectedTag = '';
         function startTimer() {
             if (!running) {
                 running = true;
@@ -215,7 +222,7 @@
                         fetch('/add_pomodoro', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({duration: duration})
+                            body: JSON.stringify({duration: duration, tag: selectedTag})
                         })
                         .then(() => {
                             showMotivation();
@@ -299,10 +306,93 @@
             const ul = document.getElementById('history-list');
             ul.innerHTML = '';
             for (let entry of history.slice(-10).reverse()) {
-                // entry: {datetime, duration}
+                // entry: {datetime, duration, tag}
                 const [date, time] = entry.datetime.split(' ');
-                ul.innerHTML += `<li>${date} <span style=\"color:#c06cb6;\">${time}</span> - <span style=\"color:#7a4e8a;\">${entry.duration} min</span></li>`;
+                let tag = entry.tag ? `<span class='tag-label'>#${entry.tag}</span>` : '';
+                ul.innerHTML += `<li>${date} <span style=\"color:#c06cb6;\">${time}</span> - <span style=\"color:#7a4e8a;\">${entry.duration} min</span> ${tag}</li>`;
+                    .tag-label {
+                        display: inline-block;
+                        background: linear-gradient(90deg, #f8e1f4 60%, #e1f0fa 100%);
+                        color: #a04e8a;
+                        border-radius: 16px;
+                        padding: 3px 14px 3px 12px;
+                        margin-left: 10px;
+                        font-size: 0.98em;
+                        font-weight: 700;
+                        box-shadow: 0 2px 8px rgba(180,120,200,0.08);
+                        border: 1.5px solid #c06cb6;
+                        letter-spacing: 0.5px;
+                        transition: background 0.2s;
+                    }
             }
+        }
+        // Etiquetas
+        function loadTags() {
+            fetch('/get_tags')
+                .then(r => r.json())
+                .then(data => {
+                    const tagButtons = document.getElementById('tag-buttons');
+                    tagButtons.innerHTML = '';
+                    if (!selectedTag && data.tags.length > 0) selectedTag = data.tags[0];
+                    for (let tag of data.tags) {
+                        tagButtons.innerHTML += `<button type='button' class='tag-btn' onclick='selectTag(this, "${tag}")' ${selectedTag===tag?'data-selected="1"':''}>${tag}</button>`;
+                    }
+                    highlightSelectedTag();
+                });
+        }
+
+        function selectTag(btn, tag) {
+            selectedTag = tag;
+            highlightSelectedTag();
+        }
+
+        function highlightSelectedTag() {
+            document.querySelectorAll('.tag-btn').forEach(btn => {
+                if (btn.textContent === selectedTag) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+        .tag-btn {
+            background: linear-gradient(90deg, #f8e1f4 60%, #e1f0fa 100%);
+            color: #a04e8a;
+            border-radius: 16px;
+            padding: 5px 18px 5px 16px;
+            font-size: 1em;
+            font-weight: 700;
+            border: 1.5px solid #c06cb6;
+            letter-spacing: 0.5px;
+            margin: 0;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 2px 8px rgba(180,120,200,0.08);
+            transition: background 0.2s, border 0.2s, color 0.2s;
+        }
+        .tag-btn.selected, .tag-btn:active {
+            background: #c06cb6;
+            color: #fff;
+            border: 2.5px solid #a04e8a;
+        }
+
+        function addTag() {
+            const newTag = document.getElementById('new-tag').value.trim();
+            if (!newTag) return;
+            fetch('/add_tag', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({tag: newTag})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loadTags();
+                    document.getElementById('new-tag').value = '';
+                } else {
+                    alert('La etiqueta ya existe o es inválida.');
+                }
+            });
         }
 
         function showDayDetails(dateStr) {
@@ -325,6 +415,7 @@
         // Inicialización
         updateTimerDisplay();
         fetchData();
+        loadTags();
     </script>
 </body>
 </html>
