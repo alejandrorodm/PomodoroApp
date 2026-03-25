@@ -159,11 +159,15 @@
                     } else {
                         clearInterval(timer);
                         running = false;
-                        fetch('/add_pomodoro', {method: 'POST'})
-                            .then(() => {
-                                showMotivation();
-                                fetchData();
-                            });
+                        fetch('/add_pomodoro', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({duration: duration})
+                        })
+                        .then(() => {
+                            showMotivation();
+                            fetchData();
+                        });
                         alert('¡Pomodoro terminado! ¡Sigue así, ingeniera!');
                         resetTimer();
                     }
@@ -231,7 +235,7 @@
                 let classes = '';
                 if (calendar[dateStr]) classes += 'marked ';
                 if (day === today) classes += 'today ';
-                html += `<td class="${classes.trim()}">${day}</td>`;
+                html += `<td class="${classes.trim()}" style="cursor:pointer;" onclick="showDayDetails('${dateStr}')">${day}</td>`;
                 if ((firstDay + day) % 7 === 0) html += '</tr><tr>';
             }
             html += '</tr></table>';
@@ -242,9 +246,27 @@
             const ul = document.getElementById('history-list');
             ul.innerHTML = '';
             for (let entry of history.slice(-10).reverse()) {
-                const [date, time] = entry.split(' ');
-                ul.innerHTML += `<li>${date} <span style="color:#c06cb6;">${time}</span></li>`;
+                // entry: {datetime, duration}
+                const [date, time] = entry.datetime.split(' ');
+                ul.innerHTML += `<li>${date} <span style=\"color:#c06cb6;\">${time}</span> - <span style=\"color:#7a4e8a;\">${entry.duration} min</span></li>`;
             }
+        }
+
+        function showDayDetails(dateStr) {
+            fetch(`/get_day/${dateStr}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.pomodoros.length === 0) {
+                        alert(`No hay pomodoros registrados el ${dateStr}`);
+                    } else {
+                        let msg = `Pomodoros del ${dateStr}:\n`;
+                        for (let p of data.pomodoros) {
+                            const [_, time] = p.datetime.split(' ');
+                            msg += `- ${time} (${p.duration} min)\n`;
+                        }
+                        alert(msg);
+                    }
+                });
         }
 
         // Inicialización
