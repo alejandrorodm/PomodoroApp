@@ -1,235 +1,898 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomodoro Femenino</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>Pomodoro Power 🍅</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Roboto+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(120deg, #f8e1f4 0%, #e1f0fa 100%);
-            font-family: 'Montserrat', sans-serif;
-            color: #4a3b57;
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
+
+        :root {
+            --pink: #c06cb6;
+            --dark-pink: #a04e8a;
+            --light-bg: #f8e1f4;
+            --blue-bg: #e1f0fa;
+            --purple: #7a4e8a;
+            --white: #fff;
+            --radius: 14px;
+            --green: #27ae60;
+            --dark-green: #1e8449;
+            --light-green: #d4edda;
+            /* Active-mode colors (overridden by JS class) */
+            --active-color: var(--pink);
+            --active-dark: var(--dark-pink);
+            --active-light: var(--light-bg);
+        }
+
+        /* ─── MODE TABS ─── */
+        .mode-tabs {
+            display: flex;
+            background: var(--white);
+            border-radius: 40px;
+            padding: 4px;
+            gap: 4px;
+            box-shadow: 0 2px 12px rgba(192,108,182,0.13);
+        }
+
+        .mode-tab {
+            flex: 1;
+            border: none;
+            background: transparent;
+            border-radius: 36px;
+            padding: 10px 28px;
+            font-size: 1em;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--purple);
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+
+        .mode-tab.active {
+            background: var(--pink);
+            color: var(--white);
+            box-shadow: 0 3px 12px rgba(192,108,182,0.28);
+        }
+
+        body.break-mode .mode-tab.active {
+            background: var(--green);
+            box-shadow: 0 3px 12px rgba(39,174,96,0.28);
+        }
+
+        /* ─── BREAK-MODE color overrides ─── */
+        body.break-mode .timer {
+            color: var(--green);
+            text-shadow: 0 4px 32px rgba(39,174,96,0.22);
+        }
+
+        body.break-mode .btn:not(.secondary) {
+            background: var(--green);
+            box-shadow: 0 3px 12px rgba(39,174,96,0.22);
+        }
+
+        body.break-mode .btn:not(.secondary):hover {
+            background: var(--dark-green);
+            box-shadow: 0 6px 18px rgba(39,174,96,0.3);
+        }
+
+        body.break-mode .btn.secondary {
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        body.break-mode .btn.secondary:hover {
+            background: var(--light-green);
+        }
+
+        body.break-mode .duration-row input[type="number"] {
+            border-color: var(--green);
+            color: var(--dark-green);
+        }
+
+        body.break-mode .duration-row label,
+        body.break-mode .duration-row span {
+            color: var(--dark-green);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8e1f4 0%, #e1f0fa 100%);
+            font-family: 'Montserrat', sans-serif;
+            color: #4a3b57;
+            min-height: 100vh;
+        }
+
+        /* ─── LAYOUT ─── */
         .main-flex {
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 90vh;
-            gap: 32px;
+            min-height: 100vh;
+            gap: 0;
         }
+
+        /* Left column – timer */
         .timer-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             flex: 1 1 0;
-            min-width: 320px;
-            min-height: 100vh;
-        }
-        .timer {
-            text-align: center;
-            font-size: 12vw;
-            max-font-size: 14em;
-            min-font-size: 6em;
-            font-family: 'Roboto Mono', monospace;
-            margin-bottom: 24px;
-            color: #c06cb6;
-            letter-spacing: 2px;
-            font-weight: 900;
-            line-height: 1.1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .side-panel {
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 4px 24px rgba(180, 120, 200, 0.13);
-            padding: 32px 24px 24px 24px;
-            min-width: 320px;
-            max-width: 380px;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
             gap: 18px;
-            min-height: 100vh;
-            height: 100vh;
-            box-sizing: border-box;
         }
+
         h1 {
+            font-size: 2rem;
+            color: var(--pink);
+            font-weight: 900;
+            letter-spacing: 1px;
             text-align: center;
-            color: #c06cb6;
-            font-weight: 700;
-            margin-bottom: 8px;
         }
-        .motivational {
+
+        /* Funny phrase box */
+        .funny-box {
+            background: var(--white);
+            border: 2px solid var(--pink);
+            border-radius: var(--radius);
+            padding: 14px 20px;
+            max-width: 420px;
+            width: 100%;
             text-align: center;
-            font-size: 1.1em;
-            color: #7a4e8a;
-            margin-bottom: 18px;
+            font-size: 0.97em;
+            color: var(--purple);
             font-style: italic;
+            box-shadow: 0 4px 16px rgba(192, 108, 182, 0.12);
+            cursor: pointer;
+            transition: transform 0.15s;
+            position: relative;
         }
+
+        .funny-box:hover {
+            transform: scale(1.02);
+        }
+
+        .funny-box::before {
+            content: '💬';
+            position: absolute;
+            top: -12px;
+            left: 16px;
+            font-size: 1.3em;
+        }
+
+        /* Big timer */
+        .timer {
+            font-family: 'Roboto Mono', monospace;
+            font-size: clamp(4rem, 12vw, 9rem);
+            font-weight: 900;
+            color: var(--pink);
+            letter-spacing: 4px;
+            line-height: 1;
+            text-shadow: 0 4px 32px rgba(192, 108, 182, 0.22);
+        }
+
+        /* Controls */
         .controls {
             display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
         }
-        .controls button {
-            background: #c06cb6;
-            color: #fff;
+
+        .btn {
+            background: var(--pink);
+            color: var(--white);
             border: none;
-            border-radius: 8px;
-            padding: 8px 18px;
+            border-radius: 10px;
+            padding: 10px 24px;
             font-size: 1em;
             font-weight: 700;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.18s, transform 0.12s, box-shadow 0.18s;
+            box-shadow: 0 3px 12px rgba(192, 108, 182, 0.22);
+            font-family: 'Montserrat', sans-serif;
         }
-        .controls button:hover {
-            background: #a04e8a;
+
+        .btn:hover {
+            background: var(--dark-pink);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(192, 108, 182, 0.3);
         }
-        .duration {
-            text-align: center;
-            margin-bottom: 10px;
+
+        .btn:active {
+            transform: translateY(0);
         }
-        .duration input {
-            width: 50px;
-            border-radius: 6px;
-            border: 1px solid #c06cb6;
-            padding: 4px 8px;
+
+        .btn.secondary {
+            background: var(--white);
+            color: var(--pink);
+            border: 2px solid var(--pink);
+        }
+
+        .btn.secondary:hover {
+            background: var(--light-bg);
+        }
+
+        /* Duration */
+        .duration-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .duration-row label {
+            font-weight: 600;
+            color: var(--purple);
+        }
+
+        .duration-row input[type="number"] {
+            width: 64px;
+            border-radius: 8px;
+            border: 2px solid var(--pink);
+            padding: 6px 10px;
             font-size: 1em;
             text-align: center;
+            font-family: 'Roboto Mono', monospace;
+            color: var(--purple);
         }
-        .calendar {
-            margin: 10px 0 10px 0;
+
+        /* Tag selector */
+        .tags-section {
+            width: 100%;
+            max-width: 480px;
         }
+
+        .tags-section .section-title {
+            font-weight: 700;
+            color: var(--purple);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .tag-btn {
+            background: var(--white);
+            color: var(--dark-pink);
+            border-radius: 20px;
+            padding: 5px 16px;
+            font-size: 0.93em;
+            font-weight: 700;
+            border: 2px solid var(--pink);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, border 0.15s;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .tag-btn:hover {
+            background: var(--light-bg);
+        }
+
+        .tag-btn.selected {
+            background: var(--pink);
+            color: var(--white);
+            border-color: var(--dark-pink);
+        }
+
+        .add-tag-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-tag-row input {
+            flex: 1;
+            border: 2px solid var(--pink);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.95em;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--purple);
+        }
+
+        .add-tag-row input:focus {
+            outline: none;
+            border-color: var(--dark-pink);
+        }
+
+        /* Productivity stars */
+        .productivity-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .productivity-row label {
+            font-weight: 600;
+            color: var(--purple);
+        }
+
+        .stars {
+            display: flex;
+            gap: 4px;
+        }
+
+        .star {
+            font-size: 1.6em;
+            cursor: pointer;
+            transition: transform 0.12s;
+            color: #ddd;
+            user-select: none;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #f5a623;
+            transform: scale(1.2);
+        }
+
+        /* ─── RIGHT SIDE PANEL ─── */
+        .side-panel {
+            background: var(--white);
+            border-left: 1px solid rgba(192, 108, 182, 0.15);
+            width: 360px;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 28px 20px;
+            overflow-y: auto;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+
+        .pomodoros-today {
+            background: linear-gradient(90deg, var(--light-bg) 0%, var(--blue-bg) 100%);
+            border-radius: var(--radius);
+            padding: 12px 18px;
+            text-align: center;
+            font-weight: 700;
+            color: var(--purple);
+            font-size: 1.05em;
+        }
+
+        .pomodoros-today span {
+            color: var(--pink);
+            font-size: 1.5em;
+            margin-left: 6px;
+        }
+
+        /* Section headers */
+        .panel-section-title {
+            font-weight: 700;
+            color: var(--pink);
+            font-size: 0.95em;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            border-bottom: 2px solid var(--light-bg);
+            padding-bottom: 4px;
+        }
+
+        /* ─── CALENDAR ─── */
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .calendar-nav span {
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            color: var(--pink);
+            padding: 2px 8px;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+
+        .calendar-nav button:hover {
+            background: var(--light-bg);
+        }
+
         .calendar-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 0 auto;
         }
-        .calendar-table th, .calendar-table td {
-            width: 14.2%;
+
+        .calendar-table th {
             text-align: center;
             padding: 4px 0;
-            border-radius: 6px;
+            font-size: 0.78em;
+            color: var(--purple);
+            opacity: 0.7;
         }
-        .calendar-table td.marked {
-            background: #f8e1f4;
-            color: #c06cb6;
-            font-weight: bold;
-        }
-        .calendar-table td.today {
-            border: 2px solid #c06cb6;
-        }
-        .history {
-            margin-top: 10px;
-            background: #f8e1f4;
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 0.98em;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-        .pomodoros-today {
+
+        .calendar-table td {
             text-align: center;
-            margin-bottom: 10px;
-            color: #7a4e8a;
+            padding: 5px 2px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background 0.15s;
+            width: 14.28%;
+        }
+
+        .calendar-table td:hover {
+            background: var(--light-bg);
+        }
+
+        .calendar-table td.today {
+            border: 2.5px solid var(--pink);
             font-weight: 700;
         }
-        @media (max-width: 900px) {
+
+        /* Color scale: 0=none, 1-3=yellow, 4+=green */
+        .calendar-table td.day-zero {
+            background: transparent;
+            color: #bbb;
+        }
+
+        .calendar-table td.day-low {
+            background: #FFF3CD;
+            color: #856404;
+            font-weight: 700;
+        }
+
+        .calendar-table td.day-high {
+            background: #D4EDDA;
+            color: #155724;
+            font-weight: 700;
+        }
+
+        /* ─── HISTORY ─── */
+        .history-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.88em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-left: 4px solid #ddd;
+        }
+
+        /* Pomodoro color by duration */
+        .history-item.color-red {
+            background: #fff5f5;
+            border-left-color: #e74c3c;
+        }
+
+        .history-item.color-orange {
+            background: #fff9f0;
+            border-left-color: #f39c12;
+        }
+
+        .history-item.color-green {
+            background: #f0fff4;
+            border-left-color: #27ae60;
+        }
+
+        .hist-time {
+            color: var(--pink);
+            font-weight: 600;
+        }
+
+        .hist-duration {
+            font-weight: 700;
+        }
+
+        .hist-duration.color-red {
+            color: #e74c3c;
+        }
+
+        .hist-duration.color-orange {
+            color: #f39c12;
+        }
+
+        .hist-duration.color-green {
+            color: #27ae60;
+        }
+
+        .tag-label {
+            display: inline-block;
+            background: var(--light-bg);
+            color: var(--dark-pink);
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 0.88em;
+            font-weight: 700;
+            border: 1.5px solid var(--pink);
+        }
+
+        /* Productivity stars (small) */
+        .hist-stars {
+            font-size: 0.85em;
+        }
+
+        /* ─── WEEKLY REPORT ─── */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        .report-table tr {
+            border-bottom: 1px solid var(--light-bg);
+        }
+
+        .report-table td {
+            padding: 5px 4px;
+        }
+
+        .report-table td:last-child {
+            text-align: right;
+            font-weight: 700;
+            color: var(--dark-pink);
+        }
+
+        .report-bar-wrap {
+            width: 90px;
+            height: 8px;
+            background: var(--light-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .report-bar {
+            height: 100%;
+            background: var(--pink);
+            border-radius: 4px;
+        }
+
+        .productivity-score {
+            text-align: center;
+            background: var(--light-bg);
+            border-radius: var(--radius);
+            padding: 8px;
+            font-size: 0.93em;
+        }
+
+        .productivity-score strong {
+            color: var(--pink);
+            font-size: 1.2em;
+        }
+
+        /* ─── MODAL ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 59, 87, 0.55);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 36px 32px;
+            max-width: 380px;
+            width: 90%;
+            box-shadow: 0 16px 60px rgba(74, 59, 87, 0.25);
+            text-align: center;
+            animation: popIn 0.25s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal h2 {
+            color: var(--pink);
+            margin-bottom: 8px;
+        }
+
+        .modal p {
+            color: var(--purple);
+            margin-bottom: 18px;
+            font-size: 0.95em;
+        }
+
+        .modal-stars {
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .modal .star {
+            font-size: 2.2em;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 820px) {
             .main-flex {
                 flex-direction: column;
-                align-items: stretch;
-                gap: 0;
             }
+
             .side-panel {
-                margin: 0 auto;
-                min-width: unset;
-                max-width: 98vw;
-                min-height: unset;
+                width: 100%;
                 height: auto;
-            }
-            .timer-panel {
-                min-width: unset;
-                min-height: unset;
+                position: static;
+                border-left: none;
+                border-top: 1px solid rgba(192, 108, 182, 0.15);
             }
         }
     </style>
 </head>
+
 <body>
-    <div class="main-flex">
-        <div class="timer-panel">
-            <h1>Pomodoro Power</h1>
-            <div class="motivational">¡Eres una ingeniera brillante! Cada pomodoro te acerca más a tus sueños. 💜</div>
-            <div class="timer" id="timer">25:00</div>
+
+    <!-- ═══ PRODUCTIVITY RATING MODAL ═══ -->
+    <div class="modal-overlay" id="prod-modal">
+        <div class="modal">
+            <h2>🍅 ¡Pomodoro completado!</h2>
+            <p>¿Cómo valoras tu productividad?</p>
+            <div class="stars modal-stars" id="modal-stars">
+                <span class="star" data-v="1">⭐</span>
+                <span class="star" data-v="2">⭐</span>
+                <span class="star" data-v="3">⭐</span>
+                <span class="star" data-v="4">⭐</span>
+                <span class="star" data-v="5">⭐</span>
+            </div>
+            <button class="btn" id="modal-confirm">Guardar</button>
         </div>
-        <div class="side-panel">
+    </div>
+
+    <div class="main-flex">
+        <!-- ═══ LEFT: TIMER PANEL ═══ -->
+        <div class="timer-panel">
+            <h1>🍅 Pomodoro Power</h1>
+
+            <!-- Funny phrase box -->
+            <div class="funny-box" id="funny-box" title="Haz clic para otra frase" onclick="nextFunnyPhrase()">
+                Cargando sabiduría pomodorística...
+            </div>
+
+            <!-- Mode tabs -->
+            <div class="mode-tabs">
+                <button class="mode-tab active" id="tab-pomodoro" onclick="switchMode('pomodoro')">🍅 Pomodoro</button>
+                <button class="mode-tab" id="tab-break" onclick="switchMode('break')">☕ Descanso</button>
+            </div>
+
+            <!-- Timer display -->
+            <div class="timer" id="timer">25:00</div>
+
+            <!-- Controls -->
             <div class="controls">
-                <button onclick="startTimer()">Iniciar</button>
-                <button onclick="pauseTimer()">Pausar</button>
-                <button onclick="resetTimer()">Reiniciar</button>
+                <button class="btn" onclick="startTimer()">▶ Iniciar</button>
+                <button class="btn secondary" onclick="pauseTimer()">⏸ Pausar</button>
+                <button class="btn secondary" onclick="resetTimer()">↺ Reiniciar</button>
             </div>
-            <div class="duration">
-                Duración: <input type="number" id="duration" min="1" max="120" value="25"> min
-                <button onclick="setDuration()">Establecer</button>
+
+            <!-- Duration (Pomodoro) -->
+            <div class="duration-row" id="pomodoro-duration-row">
+                <label>Duración:</label>
+                <input type="number" id="duration" min="1" max="180" value="25">
+                <span>min</span>
+                <button class="btn secondary" onclick="setDuration()">Establecer</button>
             </div>
-            <div class="tags-panel">
-                <b>Etiqueta:</b>
-                <div id="tag-buttons" style="margin: 8px 0 6px 0; display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                <input type="text" id="new-tag" placeholder="Nueva etiqueta" style="margin-top:6px; width:70%">
-                <button onclick="addTag()" style="margin-top:6px;">Añadir</button>
+
+            <!-- Duration (Break) -->
+            <div class="duration-row" id="break-duration-row" style="display:none">
+                <label>Duración descanso:</label>
+                <input type="number" id="break-duration" min="1" max="60" value="5">
+                <span>min</span>
+                <button class="btn secondary" onclick="setBreakDuration()">Establecer</button>
             </div>
+
+            <!-- Tag selector -->
+            <div class="tags-section">
+                <div class="section-title">🏷️ Etiqueta del pomodoro</div>
+                <div class="tag-row" id="tag-buttons"></div>
+                <div class="add-tag-row">
+                    <input type="text" id="new-tag" placeholder="Nueva etiqueta…" maxlength="30">
+                    <button class="btn" onclick="addTag()">+ Añadir</button>
+                </div>
+            </div>
+
+            <!-- Inline productivity selector -->
+            <div class="productivity-row">
+                <label>Productividad esperada:</label>
+                <div class="stars" id="inline-stars">
+                    <span class="star" data-v="1">⭐</span>
+                    <span class="star" data-v="2">⭐</span>
+                    <span class="star" data-v="3">⭐</span>
+                    <span class="star" data-v="4">⭐</span>
+                    <span class="star" data-v="5">⭐</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ RIGHT: SIDE PANEL ═══ -->
+        <div class="side-panel">
+            <!-- Today counter -->
             <div class="pomodoros-today">
                 Pomodoros hoy: <span id="pomodoros-today">0</span>
             </div>
-            <div class="calendar">
-                <strong>Calendario de estudio</strong>
+
+            <!-- Calendar -->
+            <div>
+                <div class="panel-section-title">📅 Calendario</div>
+                <div class="calendar-nav">
+                    <button onclick="changeMonth(-1)">◀</button>
+                    <span id="calendar-month-label"></span>
+                    <button onclick="changeMonth(1)">▶</button>
+                </div>
                 <div id="calendar"></div>
+                <div style="display:flex;gap:10px;margin-top:6px;font-size:0.78em;flex-wrap:wrap;">
+                    <span>⬜ Sin pomodoros</span>
+                    <span style="color:#856404;background:#FFF3CD;border-radius:6px;padding:1px 6px;">🟡 1-3
+                        pomodoros</span>
+                    <span style="color:#155724;background:#D4EDDA;border-radius:6px;padding:1px 6px;">🟢 4+
+                        pomodoros</span>
+                </div>
             </div>
-            <div class="history">
-                <strong>Historial reciente:</strong>
-                <ul id="history-list" style="padding-left: 18px; margin: 0;"></ul>
+
+            <!-- Recent history -->
+            <div>
+                <div class="panel-section-title">📋 Historial reciente</div>
+                <ul class="history-list" id="history-list"></ul>
+            </div>
+
+            <!-- Weekly report -->
+            <div>
+                <div class="panel-section-title">📊 Reporte semanal</div>
+                <div id="weekly-report">Cargando…</div>
             </div>
         </div>
     </div>
+
     <script>
-        let timer;
+        // ─── STATE ───
+        let timerInterval;
         let timeLeft = 25 * 60;
         let running = false;
         let duration = 25;
+        let breakDuration = 5;
+        let currentMode = 'pomodoro'; // 'pomodoro' | 'break'
+        let selectedTag = '';
+        let pendingProductivity = 0;
+        let currentProductivity = 0; // for current session pre-selection
+        let calendarViewYear, calendarViewMonth;
 
+        // ─── MODE SWITCHING ───
+        function switchMode(mode) {
+            if (mode === currentMode) return;
+            pauseTimer();
+            currentMode = mode;
+
+            // Update tab styles
+            document.getElementById('tab-pomodoro').classList.toggle('active', mode === 'pomodoro');
+            document.getElementById('tab-break').classList.toggle('active', mode === 'break');
+
+            // Toggle body class for color theme
+            document.body.classList.toggle('break-mode', mode === 'break');
+
+            // Toggle duration rows
+            document.getElementById('pomodoro-duration-row').style.display = mode === 'pomodoro' ? '' : 'none';
+            document.getElementById('break-duration-row').style.display = mode === 'break' ? '' : 'none';
+
+            // Load the correct time
+            if (mode === 'pomodoro') {
+                timeLeft = duration * 60;
+            } else {
+                timeLeft = breakDuration * 60;
+            }
+            updateTimerDisplay();
+        }
+
+        // ─── FUNNY PHRASES ───
+        const FUNNY_PHRASES_DEFAULT = [
+            "25 minutos de trabajo, 5 de preguntarme si soy un genio.",
+            "Hoy voy a ser productiva... después de este meme.",
+            "Mi cerebro funciona mejor a las 11 PM. Soy un búho con deadlines.",
+            "Error 404: motivación not found. Iniciando Pomodoro...",
+            "Procrastinar es solo planificación con más drama.",
+            "Si el TFG fuera una novela, estaría en el prólogo... del prólogo.",
+            "Modo pomodoro activado. Modo concentración: en camino.",
+            "Soy una máquina. Una máquina que necesita descanso cada 25 minutos.",
+            "Cada pomodoro completado es un 'yo lo dije' al universo.",
+            "El silencio es de oro. Pero yo prefiero el sonido del timer.",
+            "Hoy voy a aprovechar el tiempo... mañana igual.",
+            "Productividad: el arte de postergar las cosas menos importantes.",
+            "Un pomodoro al día, del suspenso te alejaría.",
+            "Brain.exe ha dejado de funcionar. Reiniciando con pomodoro...",
+            "El conocimiento es poder. Yo tengo WiFi, que es casi lo mismo.",
+            "¿Dormir o estudiar? Sí.",
+            "Cada línea de código escrita en modo pomodoro vale por tres.",
+        ];
+        let FUNNY_PHRASES = FUNNY_PHRASES_DEFAULT;
+        let funnyIndex = Math.floor(Math.random() * FUNNY_PHRASES.length);
+
+        function nextFunnyPhrase() {
+            funnyIndex = (funnyIndex + 1) % FUNNY_PHRASES.length;
+            document.getElementById('funny-box').textContent = FUNNY_PHRASES[funnyIndex];
+        }
+
+        // Load custom phrases from server (frases_personalizadas.txt), fall back to defaults
+        fetch('/get_phrases')
+            .then(r => r.json())
+            .then(data => {
+                if (data.phrases && data.phrases.length > 0) {
+                    FUNNY_PHRASES = data.phrases;
+                    funnyIndex = Math.floor(Math.random() * FUNNY_PHRASES.length);
+                }
+                document.getElementById('funny-box').textContent = FUNNY_PHRASES[funnyIndex];
+            })
+            .catch(() => {
+                document.getElementById('funny-box').textContent = FUNNY_PHRASES[funnyIndex];
+            });
+
+        // ─── TIMER ───
         function updateTimerDisplay() {
             const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
             const secs = (timeLeft % 60).toString().padStart(2, '0');
             document.getElementById('timer').textContent = `${mins}:${secs}`;
         }
 
-        let selectedTag = '';
         function startTimer() {
             if (!running) {
                 running = true;
-                timer = setInterval(() => {
+                timerInterval = setInterval(() => {
                     if (timeLeft > 0) {
                         timeLeft--;
                         updateTimerDisplay();
                     } else {
-                        clearInterval(timer);
+                        clearInterval(timerInterval);
                         running = false;
-                        fetch('/add_pomodoro', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({duration: duration, tag: selectedTag})
-                        })
-                        .then(() => {
-                            showMotivation();
-                            fetchData();
-                        });
-                        alert('¡Pomodoro terminado! ¡Sigue así, ingeniera!');
-                        resetTimer();
+                        if (currentMode === 'pomodoro') {
+                            showProductivityModal();
+                        } else {
+                            // Break finished
+                            new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA').play().catch(()=>{});
+                            alert('☕ ¡Descanso terminado! Vuelve al trabajo 💪');
+                            timeLeft = breakDuration * 60;
+                            updateTimerDisplay();
+                        }
                     }
                 }, 1000);
             }
@@ -237,37 +900,289 @@
 
         function pauseTimer() {
             running = false;
-            clearInterval(timer);
+            clearInterval(timerInterval);
         }
 
         function resetTimer() {
             running = false;
-            clearInterval(timer);
-            timeLeft = duration * 60;
+            clearInterval(timerInterval);
+            if (currentMode === 'pomodoro') {
+                timeLeft = duration * 60;
+            } else {
+                timeLeft = breakDuration * 60;
+            }
             updateTimerDisplay();
         }
 
         function setDuration() {
             const val = parseInt(document.getElementById('duration').value);
-            if (val > 0 && val <= 120) {
+            if (val > 0 && val <= 180) {
                 duration = val;
-                resetTimer();
+                if (currentMode === 'pomodoro') resetTimer();
             }
         }
 
-        function showMotivation() {
-            const messages = [
-                '¡Sigue brillando, ingeniera!',
-                '¡Cada paso cuenta, no te detengas!',
-                '¡Eres capaz de lograrlo todo!',
-                '¡La constancia es tu superpoder!',
-                '¡Hoy es un gran día para aprender!',
-                '¡Tu esfuerzo te hace única!'
-            ];
-            const msg = messages[Math.floor(Math.random() * messages.length)];
-            document.querySelector('.motivational').textContent = msg;
+        function setBreakDuration() {
+            const val = parseInt(document.getElementById('break-duration').value);
+            if (val > 0 && val <= 60) {
+                breakDuration = val;
+                if (currentMode === 'break') {
+                    running = false;
+                    clearInterval(timerInterval);
+                    timeLeft = breakDuration * 60;
+                    updateTimerDisplay();
+                }
+            }
         }
 
+        // ─── PRODUCTIVITY MODAL ───
+        function showProductivityModal() {
+            pendingProductivity = 0;
+            setModalStars(0);
+            document.getElementById('prod-modal').classList.add('active');
+            nextFunnyPhrase();
+        }
+
+        document.getElementById('modal-stars').addEventListener('click', e => {
+            if (e.target.classList.contains('star')) {
+                pendingProductivity = parseInt(e.target.dataset.v);
+                setModalStars(pendingProductivity);
+            }
+        });
+
+        function setModalStars(val) {
+            document.querySelectorAll('#modal-stars .star').forEach(s => {
+                s.classList.toggle('active', parseInt(s.dataset.v) <= val);
+            });
+        }
+
+        document.getElementById('modal-confirm').addEventListener('click', () => {
+            document.getElementById('prod-modal').classList.remove('active');
+            savePomodoro(pendingProductivity);
+            resetTimer();
+        });
+
+        function savePomodoro(productivity) {
+            fetch('/add_pomodoro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ duration: duration, tag: selectedTag, productivity: productivity })
+            }).then(() => {
+                fetchData();
+                fetchWeeklyReport();
+            });
+        }
+
+        // ─── INLINE STARS (before starting) ───
+        document.getElementById('inline-stars').addEventListener('click', e => {
+            if (e.target.classList.contains('star')) {
+                currentProductivity = parseInt(e.target.dataset.v);
+                document.querySelectorAll('#inline-stars .star').forEach(s => {
+                    s.classList.toggle('active', parseInt(s.dataset.v) <= currentProductivity);
+                });
+            }
+        });
+
+        // ─── TAGS ───
+        function loadTags() {
+            fetch('/get_tags')
+                .then(r => r.json())
+                .then(data => {
+                    const container = document.getElementById('tag-buttons');
+                    container.innerHTML = '';
+                    if (!selectedTag && data.tags.length > 0) selectedTag = data.tags[0];
+                    data.tags.forEach(tag => {
+                        const btn = document.createElement('button');
+                        btn.className = 'tag-btn' + (selectedTag === tag ? ' selected' : '');
+                        btn.textContent = tag;
+                        btn.onclick = () => selectTag(tag);
+                        container.appendChild(btn);
+                    });
+                });
+        }
+
+        function selectTag(tag) {
+            selectedTag = tag;
+            document.querySelectorAll('.tag-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent === tag);
+            });
+        }
+
+        function addTag() {
+            const newTag = document.getElementById('new-tag').value.trim();
+            if (!newTag) return;
+            fetch('/add_tag', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tag: newTag })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        selectedTag = newTag;
+                        loadTags();
+                        document.getElementById('new-tag').value = '';
+                    } else {
+                        alert('La etiqueta ya existe o es inválida.');
+                    }
+                });
+        }
+
+        // ─── CALENDAR ───
+        const now = new Date();
+        calendarViewYear = now.getFullYear();
+        calendarViewMonth = now.getMonth();
+
+        const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const DAY_NAMES = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+        let calendarData = {};
+
+        function changeMonth(delta) {
+            calendarViewMonth += delta;
+            if (calendarViewMonth < 0) { calendarViewMonth = 11; calendarViewYear--; }
+            if (calendarViewMonth > 11) { calendarViewMonth = 0; calendarViewYear++; }
+            renderCalendar(calendarData);
+        }
+
+        function renderCalendar(calendar) {
+            calendarData = calendar;
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            document.getElementById('calendar-month-label').textContent =
+                `${MONTH_NAMES[calendarViewMonth]} ${calendarViewYear}`;
+
+            const firstDay = new Date(calendarViewYear, calendarViewMonth, 1).getDay();
+            // Adjust: Monday=0 ... Sunday=6
+            const startOffset = (firstDay + 6) % 7;
+            const daysInMonth = new Date(calendarViewYear, calendarViewMonth + 1, 0).getDate();
+
+            let html = '<table class="calendar-table"><tr>';
+            for (let d of DAY_NAMES) html += `<th>${d}</th>`;
+            html += '</tr><tr>';
+
+            for (let i = 0; i < startOffset; i++) html += '<td></td>';
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${calendarViewYear}-${String(calendarViewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const count = calendar[dateStr] || 0;
+                let cls = '';
+                if (count === 0) cls = 'day-zero';
+                else if (count <= 3) cls = 'day-low';
+                else cls = 'day-high';
+                if (dateStr === todayStr) cls += ' today';
+
+                const title = count > 0 ? `${count} pomodoro${count > 1 ? 's' : ''}` : '';
+                html += `<td class="${cls.trim()}" title="${title}" onclick="showDayDetails('${dateStr}')">${day}</td>`;
+
+                if ((startOffset + day) % 7 === 0) html += '</tr><tr>';
+            }
+            html += '</tr></table>';
+            document.getElementById('calendar').innerHTML = html;
+        }
+
+        function showDayDetails(dateStr) {
+            fetch(`/get_day/${dateStr}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.pomodoros.length === 0) {
+                        alert(`Sin pomodoros el ${dateStr} ❌`);
+                    } else {
+                        let msg = `Pomodoros del ${dateStr} (${data.pomodoros.length} total):\n\n`;
+                        for (let p of data.pomodoros) {
+                            const time = p.datetime.split(' ')[1];
+                            const tag = p.tag ? ` [${p.tag}]` : '';
+                            const prod = p.productivity > 0 ? ` ⭐${p.productivity}` : '';
+                            msg += `• ${time} – ${p.duration} min${tag}${prod}\n`;
+                        }
+                        alert(msg);
+                    }
+                });
+        }
+
+        // ─── HISTORY ───
+        function getDurationColor(mins) {
+            if (mins >= 60) return 'red';
+            if (mins >= 40) return 'orange';
+            return 'green';
+        }
+
+        function starsDisplay(val) {
+            if (!val || val <= 0) return '';
+            return '⭐'.repeat(val);
+        }
+
+        function renderHistory(history) {
+            const ul = document.getElementById('history-list');
+            ul.innerHTML = '';
+            const recent = [...history].reverse().slice(0, 15);
+            for (let entry of recent) {
+                const parts = entry.datetime.split(' ');
+                const date = parts[0], time = parts[1];
+                const color = getDurationColor(entry.duration);
+                const tag = entry.tag ? `<span class="tag-label">#${entry.tag}</span>` : '';
+                const stars = entry.productivity > 0 ? `<span class="hist-stars">${'⭐'.repeat(entry.productivity)}</span>` : '';
+                const li = document.createElement('li');
+                li.className = `history-item color-${color}`;
+                li.innerHTML = `
+            <span class="hist-time">${time}</span>
+            <span class="hist-duration color-${color}">${entry.duration}min</span>
+            ${tag}${stars}
+            <span style="color:#aaa;font-size:0.82em">${date}</span>
+        `;
+                ul.appendChild(li);
+            }
+        }
+
+        // ─── WEEKLY REPORT ───
+        function fetchWeeklyReport() {
+            fetch('/weekly_report')
+                .then(r => r.json())
+                .then(data => {
+                    const container = document.getElementById('weekly-report');
+                    if (data.total_sessions === 0) {
+                        container.innerHTML = '<p style="color:#aaa;font-size:0.9em">Sin sesiones esta semana 🌙</p>';
+                        return;
+                    }
+
+                    const maxMins = Math.max(...Object.values(data.report).map(v => v.minutes), 1);
+
+                    let html = `<p style="font-size:0.82em;color:var(--purple);margin-bottom:8px">
+                Semana <b>${data.week_start}</b> → <b>${data.week_end}</b>
+                &nbsp;|&nbsp; <b>${data.total_sessions}</b> sesiones
+                &nbsp;|&nbsp; Productividad media: <b>${data.avg_productivity > 0 ? data.avg_productivity + '⭐' : 'N/A'}</b>
+            </p>`;
+
+                    html += '<table class="report-table">';
+                    const sorted = Object.entries(data.report).sort((a, b) => b[1].minutes - a[1].minutes);
+                    for (let [tag, info] of sorted) {
+                        const pct = Math.round(info.minutes / maxMins * 100);
+                        html += `<tr>
+                    <td>${tag}</td>
+                    <td><div class="report-bar-wrap"><div class="report-bar" style="width:${pct}%"></div></div></td>
+                    <td>${info.display}</td>
+                </tr>`;
+                    }
+                    html += '</table>';
+
+                    // Productivity metric
+                    if (data.avg_productivity > 0) {
+                        let label, color;
+                        if (data.avg_productivity >= 4) { label = '🟢 Muy productiva'; color = '#27ae60'; }
+                        else if (data.avg_productivity >= 2.5) { label = '🟡 Productividad media'; color = '#856404'; }
+                        else { label = '🔴 Baja productividad'; color = '#e74c3c'; }
+                        html += `<div class="productivity-score" style="margin-top:10px">
+                    Métrica semanal: <strong style="color:${color}">${label}</strong>
+                    <br><span style="font-size:0.85em">Media: ${data.avg_productivity}/5</span>
+                </div>`;
+                    }
+
+                    container.innerHTML = html;
+                });
+        }
+
+        // ─── MAIN DATA FETCH ───
         function fetchData() {
             fetch('/get_data')
                 .then(r => r.json())
@@ -278,144 +1193,12 @@
                 });
         }
 
-        function renderCalendar(calendar) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const today = now.getDate();
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            let html = '<table class="calendar-table"><tr>';
-            const weekDays = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-            for (let d of weekDays) html += `<th>${d}</th>`;
-            html += '</tr><tr>';
-            for (let i = 0; i < firstDay; i++) html += '<td></td>';
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${(month+1).toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
-                let classes = '';
-                if (calendar[dateStr]) classes += 'marked ';
-                if (day === today) classes += 'today ';
-                html += `<td class="${classes.trim()}" style="cursor:pointer;" onclick="showDayDetails('${dateStr}')">${day}</td>`;
-                if ((firstDay + day) % 7 === 0) html += '</tr><tr>';
-            }
-            html += '</tr></table>';
-            document.getElementById('calendar').innerHTML = html;
-        }
-
-        function renderHistory(history) {
-            const ul = document.getElementById('history-list');
-            ul.innerHTML = '';
-            for (let entry of history.slice(-10).reverse()) {
-                // entry: {datetime, duration, tag}
-                const [date, time] = entry.datetime.split(' ');
-                let tag = entry.tag ? `<span class='tag-label'>#${entry.tag}</span>` : '';
-                ul.innerHTML += `<li>${date} <span style=\"color:#c06cb6;\">${time}</span> - <span style=\"color:#7a4e8a;\">${entry.duration} min</span> ${tag}</li>`;
-                    .tag-label {
-                        display: inline-block;
-                        background: linear-gradient(90deg, #f8e1f4 60%, #e1f0fa 100%);
-                        color: #a04e8a;
-                        border-radius: 16px;
-                        padding: 3px 14px 3px 12px;
-                        margin-left: 10px;
-                        font-size: 0.98em;
-                        font-weight: 700;
-                        box-shadow: 0 2px 8px rgba(180,120,200,0.08);
-                        border: 1.5px solid #c06cb6;
-                        letter-spacing: 0.5px;
-                        transition: background 0.2s;
-                    }
-            }
-        }
-        // Etiquetas
-        function loadTags() {
-            fetch('/get_tags')
-                .then(r => r.json())
-                .then(data => {
-                    const tagButtons = document.getElementById('tag-buttons');
-                    tagButtons.innerHTML = '';
-                    if (!selectedTag && data.tags.length > 0) selectedTag = data.tags[0];
-                    for (let tag of data.tags) {
-                        tagButtons.innerHTML += `<button type='button' class='tag-btn' onclick='selectTag(this, "${tag}")' ${selectedTag===tag?'data-selected="1"':''}>${tag}</button>`;
-                    }
-                    highlightSelectedTag();
-                });
-        }
-
-        function selectTag(btn, tag) {
-            selectedTag = tag;
-            highlightSelectedTag();
-        }
-
-        function highlightSelectedTag() {
-            document.querySelectorAll('.tag-btn').forEach(btn => {
-                if (btn.textContent === selectedTag) {
-                    btn.classList.add('selected');
-                } else {
-                    btn.classList.remove('selected');
-                }
-            });
-        }
-        .tag-btn {
-            background: linear-gradient(90deg, #f8e1f4 60%, #e1f0fa 100%);
-            color: #a04e8a;
-            border-radius: 16px;
-            padding: 5px 18px 5px 16px;
-            font-size: 1em;
-            font-weight: 700;
-            border: 1.5px solid #c06cb6;
-            letter-spacing: 0.5px;
-            margin: 0;
-            cursor: pointer;
-            outline: none;
-            box-shadow: 0 2px 8px rgba(180,120,200,0.08);
-            transition: background 0.2s, border 0.2s, color 0.2s;
-        }
-        .tag-btn.selected, .tag-btn:active {
-            background: #c06cb6;
-            color: #fff;
-            border: 2.5px solid #a04e8a;
-        }
-
-        function addTag() {
-            const newTag = document.getElementById('new-tag').value.trim();
-            if (!newTag) return;
-            fetch('/add_tag', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({tag: newTag})
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    loadTags();
-                    document.getElementById('new-tag').value = '';
-                } else {
-                    alert('La etiqueta ya existe o es inválida.');
-                }
-            });
-        }
-
-        function showDayDetails(dateStr) {
-            fetch(`/get_day/${dateStr}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.pomodoros.length === 0) {
-                        alert(`No hay pomodoros registrados el ${dateStr}`);
-                    } else {
-                        let msg = `Pomodoros del ${dateStr}:\n`;
-                        for (let p of data.pomodoros) {
-                            const [_, time] = p.datetime.split(' ');
-                            msg += `- ${time} (${p.duration} min)\n`;
-                        }
-                        alert(msg);
-                    }
-                });
-        }
-
-        // Inicialización
+        // ─── INIT ───
         updateTimerDisplay();
         fetchData();
         loadTags();
+        fetchWeeklyReport();
     </script>
 </body>
+
 </html>
