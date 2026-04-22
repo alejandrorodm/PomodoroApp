@@ -666,6 +666,19 @@
 
 <body>
 
+    <!-- ═══ FINISH EARLY MODAL ═══ -->
+    <div class="modal-overlay" id="finish-modal">
+        <div class="modal">
+            <h2>⏱️ Terminar Pomodoro</h2>
+            <p>¿Qué tiempo deseas registrar para este pomodoro?</p>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+                <button class="btn" id="finish-full">Tiempo completo (<span id="finish-val-full"></span> min)</button>
+                <button class="btn" style="background:var(--purple)" id="finish-partial">Tiempo transcurrido (<span id="finish-val-partial"></span> min)</button>
+            </div>
+            <button class="btn secondary" style="width:100%; border:none;" onclick="document.getElementById('finish-modal').classList.remove('active'); startTimer();">Cancelar</button>
+        </div>
+    </div>
+
     <!-- ═══ PRODUCTIVITY RATING MODAL ═══ -->
     <div class="modal-overlay" id="prod-modal">
         <div class="modal">
@@ -706,6 +719,7 @@
                 <button class="btn" onclick="startTimer()">▶ Iniciar</button>
                 <button class="btn secondary" onclick="pauseTimer()">⏸ Pausar</button>
                 <button class="btn secondary" onclick="resetTimer()">↺ Reiniciar</button>
+                <button class="btn secondary" onclick="finishEarly()">⏹ Terminar</button>
             </div>
 
             <!-- Duration (Pomodoro) -->
@@ -798,6 +812,8 @@
         let pendingProductivity = 0;
         let currentProductivity = 0; // for current session pre-selection
         let calendarViewYear, calendarViewMonth;
+        let endTime = 0;
+        let timeToLog = 25;
 
         // ─── MODE SWITCHING ───
         function switchMode(mode) {
@@ -876,15 +892,18 @@
 
         function startTimer() {
             if (!running) {
+                if (timeLeft <= 0) return;
                 running = true;
+                endTime = Date.now() + timeLeft * 1000;
                 timerInterval = setInterval(() => {
-                    if (timeLeft > 0) {
-                        timeLeft--;
-                        updateTimerDisplay();
-                    } else {
+                    timeLeft = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+                    updateTimerDisplay();
+
+                    if (timeLeft <= 0) {
                         clearInterval(timerInterval);
                         running = false;
                         if (currentMode === 'pomodoro') {
+                            timeToLog = duration;
                             showProductivityModal();
                         } else {
                             // Break finished
@@ -901,6 +920,40 @@
         function pauseTimer() {
             running = false;
             clearInterval(timerInterval);
+        }
+
+        function finishEarly() {
+            if (currentMode !== 'pomodoro') {
+                resetTimer();
+                return;
+            }
+            if (!running && timeLeft === duration * 60) {
+                alert("El pomodoro aún no ha comenzado.");
+                return;
+            }
+            pauseTimer();
+            const elapsedSeconds = (duration * 60) - timeLeft;
+            const elapsedMins = Math.max(1, Math.round(elapsedSeconds / 60));
+            
+            document.getElementById('finish-val-full').textContent = duration;
+            document.getElementById('finish-val-partial').textContent = elapsedMins;
+            document.getElementById('finish-modal').classList.add('active');
+            
+            document.getElementById('finish-full').onclick = () => {
+                document.getElementById('finish-modal').classList.remove('active');
+                timeToLog = duration;
+                timeLeft = 0;
+                updateTimerDisplay();
+                showProductivityModal();
+            };
+            
+            document.getElementById('finish-partial').onclick = () => {
+                document.getElementById('finish-modal').classList.remove('active');
+                timeToLog = elapsedMins;
+                timeLeft = 0;
+                updateTimerDisplay();
+                showProductivityModal();
+            };
         }
 
         function resetTimer() {
@@ -966,7 +1019,7 @@
             fetch('/add_pomodoro', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ duration: duration, tag: selectedTag, productivity: productivity })
+                body: JSON.stringify({ duration: timeToLog, tag: selectedTag, productivity: productivity })
             }).then(() => {
                 fetchData();
                 fetchWeeklyReport();

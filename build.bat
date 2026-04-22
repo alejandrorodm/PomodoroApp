@@ -1,55 +1,48 @@
 @echo off
 setlocal
 echo ========================================================
-echo        CONFIGURADOR DE POMODORO GIRLY 2026
+echo         COMPILADOR DE POMODORO GIRLY - MODO PRO
 echo ========================================================
 
-:: 1. Limpieza total
-echo [1/6] Limpiando archivos temporales...
+:: 1. Limpieza de carpetas de compilación (esto sí es necesario)
+echo [1/5] Limpiando archivos temporales de PyInstaller...
 if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist
-if exist venv rmdir /s /q venv
 del /q *.spec 2>nul
 
-:: 2. Crear Entorno Virtual (Garantiza que no falten librerias)
-echo [2/6] Creando entorno virtual limpio...
-python -m venv venv
-call venv\Scripts\activate
-
-:: 3. Instalar solo lo necesario
-echo [3/6] Instalando dependencias en el entorno...
-python -m pip install --upgrade pip
-pip install pywebview pyinstaller Flask Pillow
-
-:: 4. Convertir Icono
-echo [4/6] Generando icono de aplicacion...
-if exist "PomodoAppIcono.png" (
-    python -c "from PIL import Image; img = Image.open('PomodoAppIcono.png'); img.save('PomodoAppIcono.ico', format='ICO', sizes=[(256, 256)])"
+:: 2. Activar tu venv existente
+echo [2/5] Activando tu entorno virtual...
+if exist venv\Scripts\activate (
+    call venv\Scripts\activate
 ) else (
-    echo AVISO: No se encontro PomodoAppIcono.png, se usara icono por defecto.
+    echo ERROR: No se encuentra la carpeta 'venv'. Asegurate de estar en la raiz del proyecto.
+    pause
+    exit /b
 )
 
-:: 5. Compilar con PyInstaller
-echo [5/6] Compilando ejecutable (Motor: EdgeChromium)...
-:: Nota: --collect-all webview asegura que se lleven todas las dependencias del motor web
-pyinstaller --noconfirm --onedir --windowed ^
-    --name "Pomodoro girly" ^
-    --icon "PomodoAppIcono.ico" ^
+:: 3. Asegurar dependencias críticas
+echo [3/5] Verificando motor PySide6 (para evitar errores de DLL)...
+pip install PySide6 pywebview pyinstaller --upgrade
+
+:: 4. Convertir Icono (Solo si existe el PNG y no el ICO)
+echo [4/5] Gestionando icono...
+if exist "PomodoroAppIcono.png" (
+    python make_icon.py
+)
+
+:: 5. Compilar usando el motor QT
+echo [5/5] Compilando ejecutable...
+:: Usamos --collect-all PySide6 para que no falte ni una sola pieza del motor grafico
+:: Anadimos --clean para limpiar la cache, y cambiamos el nombre para burlar la cache de iconos de Windows
+pyinstaller --noconfirm --clean --onefile --windowed ^
+    --name "Pomodoro Power" ^
+    --icon "PomodoroAppIcono.ico" ^
     --add-data "templates;templates" ^
     --add-data "frases_personalizadas.txt;." ^
-    --exclude-module "pythonnet" ^
-    --exclude-module "clr" ^
     --collect-all webview ^
     desktop_app.py
-
 echo.
 echo ========================================================
-echo [6/6] ¡PROCESO TERMINADO CON EXITO!
+echo ¡LISTO! Todo empaquetado en 'dist\Pomodoro girly'
 echo ========================================================
-echo.
-echo Pasos finales para que funcione en otros PCs:
-echo 1. Ve a la carpeta 'dist\Pomodoro girly'
-echo 2. NO envies solo el .exe, envia la CARPETA COMPLETA comprimida en un .zip
-echo 3. El usuario debe descomprimir y ejecutar 'Pomodoro girly.exe'
-echo.
 pause

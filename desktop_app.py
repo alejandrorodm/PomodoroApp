@@ -35,4 +35,4 @@ if __name__ == '__main__':
         min_size=(600, 500)
     )
     
-    webview.start(gui='edgechromium', debug=False)
+    webview.start()
